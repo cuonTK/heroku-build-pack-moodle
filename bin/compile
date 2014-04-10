@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+# fail fast
+set -e
+
+# config
+APACHE_VERSION="2.4.9"
+APACHE_PATH="apache"
+PHP_VERSION="5.5.11"
+PHP_PATH="php"
+BUILDPACK_VERSION="2.0-rc2"
+OPT_BUILDPACK_URL="http://vulcan-wlian.herokuapp.com/output/95ee1f8b-46fa-4ef7-a99f-92d6e03ed8d2"
+
+BIN_DIR=$(dirname $0)
+BUILD_DIR=$1
+CACHE_DIR=$2
+LP_DIR=`cd $(dirname $0); cd ..; pwd`
+
+# include .files when moving things around
+shopt -s dotglob
+
+echo "Build dir is $BUILD_DIR"
+cd $BUILD_DIR
+
+# move app things to www
+mkdir -p $CACHE_DIR/www
+mv * $CACHE_DIR/www
+mv $CACHE_DIR/www .
+
+# move Procfile back to where it is expected
+if [ -f www/Procfile ]; then
+  mv www/Procfile .
+fi
+
+echo "-----> Extracting Apache $APACHE_VERSION PHP $PHP_VERSION build $BUILDPACK_VERSION"
+echo "-----> from $OPT_BUILDPACK_URL"
+curl --silent --max-time 60 --location "$OPT_BUILDPACK_URL" | tar xz
+
+# update config files
+cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
+cp $LP_DIR/conf/php.ini php
+cp $LP_DIR/conf/php-fpm.conf $BUILD_DIR/php/etc/
+
+# make php available on bin wtih symbolic link, use relative path so it works when remounted
+mkdir bin
+cd bin
+ln -s ../php/bin/php php
+cd ..
+
+export LD_LIBRARY_PATH=$BUILD_DIR/local/lib
+export PATH=$PATH:$BUILD_DIR/bin
+
+# set a slug_id identifier
+slug_id=$(php/bin/php -r "echo md5(uniqid('', TRUE));")
+echo $slug_id > SLUG_ID
+echo "Creating Slug Identifier file with id: ${slug_id}"
+
+# Determine if an SSH bundle including ssh keys etc is included so we can access private composer repos
+# Create your bundle with 
+# tar -czv .ssh | openssl enc -out ssh_bundle_enc -e -k $SSH_BUNDLE_PASSWORD -aes-128-cbc
+# the bundle's config should include directives for
+# StrictHostKeyChecking no
+# UserKnownHostsFile=/dev/null
+if [[ -n "$SSH_BUNDLE_URL" && -n "$SSH_BUNDLE_PASSWORD" ]]; then
+    cd ~
+    # download the bundle
+    curl --silent --max-time 60 --location "$SSH_BUNDLE_URL" -o ssh_bundle_enc
+    # decrypt the bundle
+    openssl enc -in ssh_bundle_enc -d -k $SSH_BUNDLE_PASSWORD -aes-128-cbc > ssh_bundle.tar.gz
+    # extract the bundle
+    tar -xzf ssh_bundle.tar.gz
+    # cleanup
+    rm ssh_bundle_enc
+    rm ssh_bundle.tar.gz
+    cd $BUILD_DIR
+fi
+
+echo "Installing Composer binary"
+curl -s https://getcomposer.org/installer | $BUILD_DIR/bin/php -- --install-dir=bin
+mv bin/composer.phar bin/composer
+
+if [ -f $BUILD_DIR/www/composer.json ]; then
+  echo "Installing Composer dependencies"
+  cd $BUILD_DIR/www
+  $BUILD_DIR/bin/php $BUILD_DIR/bin/composer config -g github-protocols https
+  $BUILD_DIR/bin/php $BUILD_DIR/bin/composer install --prefer-dist --no-dev --optimize-autoloader
+  cd $BUILD_DIR
+fi
+
+if [ -d ~/.ssh ]; then
+    rm -rf ~/.ssh
+fi
+
+cat >>boot.sh <<EOF
+export PATH=/app/bin:\$PATH
+echo "Checking for WWWROOT environment variable..."
+if [ -n "\${WWWROOT:+x}" ]; then
+  sed -ie "s%/app/www[^\\"]*%/app/www\$WWWROOT%" /app/apache/conf/httpd.conf
+fi
+
+export HW_ADDR=\`/sbin/ifconfig eth0 | grep HWaddr | awk '{print \$5}'\`
+echo "SetEnv HW_ADDR \$HW_ADDR" >> /app/apache/conf/httpd.conf;
+
+for var in \`env|cut -f1 -d=\`; do
+  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
+done
+touch /app/apache/logs/error_log
+touch /app/apache/logs/access_log
+export PHP_ERROR_LOG=\`/app/php/bin/php -i | grep error_log | grep -v opcache | awk '{print \$5}'\`
+touch \$PHP_ERROR_LOG
+chmod 0777 \$PHP_ERROR_LOG
+tail -F /app/apache/logs/error_log &
+tail -F /app/apache/logs/access_log &
+tail -F \$PHP_ERROR_LOG &
+export LD_LIBRARY_PATH=/app/local/lib
+# export PHP_INI_SCAN_DIR=/app/php
+
+# let's check for hook scripts
+if [ -d www/.heroku ]; then
+  for file in www/.heroku/*.sh; do
+    /bin/bash \$file
+  done
+fi
+
+echo "Launching PHP FPM"
+/app/php/sbin/php-fpm -y /app/php/etc/php-fpm.conf -c /app/php/php.ini
+
+echo "Launching apache"
+exec /app/apache/bin/httpd -DNO_DETACH
+EOF
+
+chmod +x boot.sh
+
+# clean the cache
+rm -rf $CACHE_DIR/*
+
+# run a post build script from the app
+
+if [ -d $BUILD_DIR/www/.heroku -a -f $BUILD_DIR/www/.heroku/compile.sh ]; then
+    chmod 0755 $BUILD_DIR/www/.heroku/compile.sh
+    /usr/bin/env bash $BUILD_DIR/www/.heroku/compile.sh
+    rm $BUILD_DIR/www/.heroku/compile.sh
+fi
