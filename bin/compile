@@ -46,8 +46,6 @@ cp $LP_DIR/conf/php-fpm.conf $BUILD_DIR/php/etc/
 mkdir bin
 cd bin
 ln -s ../php/bin/php php
-echo ldd php
-ln -s /lib/libssl.so.0.9.8 /lib/libssl.so.10
 cd ..
 
 export LD_LIBRARY_PATH=$BUILD_DIR/local/lib
