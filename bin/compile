@@ -64,7 +64,7 @@ cd ..
 
 echo "-----> after php linked"
 
-export LD_LIBRARY_PATH=$BUILD_DIR/local/lib
+export LD_LIBRARY_PATH=$BUILD_DIR/www/local/lib
 echo $LD_LIBRARY_PATH
 export PATH=$PATH:$BUILD_DIR/local/bin:$BUILD_DIR/bin
 
