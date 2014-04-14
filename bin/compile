@@ -11,6 +11,7 @@ PHP_VERSION="5.5.11"
 PHP_PATH="php"
 BUILDPACK_VERSION="2.0-rc2"
 OPT_BUILDPACK_URL="http://tkondo-buildpacks.herokuapp.com/moodle.tar.gz"
+OPENSSL_URL="http://tkondo-buildpacks.herokuapp.com/openssl-1.0.1g.tar.gz"
 
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
@@ -19,6 +20,17 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 # include .files when moving things around
 shopt -s dotglob
+
+# install openssl1.0.1g
+echo "-----> Install from $OPENSSL_URL"
+echo "-----> Fetching OpenSSL binaries"
+mkdir /app/openssl
+cd /app/openssl
+curl $OPENSSL_URL -s -o - | tar xzf -
+/app/openssl/bin/openssl version
+mv /usr/bin/openssl /usr/bin/openssl.bak
+ln -s /app/openssl/bin/openssl /usr/bin/openssl
+echo "-----> Got OpenSSL binaries"
 
 echo "Build dir is $BUILD_DIR"
 cd $BUILD_DIR
