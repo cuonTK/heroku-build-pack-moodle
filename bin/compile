@@ -58,8 +58,12 @@ cd bin
 ln -s ../php/bin/php php
 cd ..
 
+echo "-----> after php linked"
+
 export LD_LIBRARY_PATH=$BUILD_DIR/local/lib
 export PATH=$PATH:$BUILD_DIR/local/bin:$BUILD_DIR/bin
+
+echo "-----> after export path"
 
 # set a slug_id identifier
 slug_id=$(php/bin/php -r "echo md5(uniqid('', TRUE));")
@@ -77,7 +81,7 @@ if [[ -n "$SSH_BUNDLE_URL" && -n "$SSH_BUNDLE_PASSWORD" ]]; then
     # download the bundle
     curl --silent --max-time 60 --location "$SSH_BUNDLE_URL" -o ssh_bundle_enc
     # decrypt the bundle
-    openssl enc -in ssh_bundle_enc -d -k $SSH_BUNDLE_PASSWORD -aes-128-cbc > ssh_bundle.tar.gz
+    $BUILD_DIR/local/bin/openssl enc -in ssh_bundle_enc -d -k $SSH_BUNDLE_PASSWORD -aes-128-cbc > ssh_bundle.tar.gz
     # extract the bundle
     tar -xzf ssh_bundle.tar.gz
     # cleanup
