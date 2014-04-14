@@ -24,10 +24,10 @@ shopt -s dotglob
 # install openssl1.0.1g
 echo "-----> Install from $OPENSSL_URL"
 echo "-----> Fetching OpenSSL binaries"
-export LD_LIBRARY_PATH=/app/vendor/openssl/lib/
 mkdir -p $1/vendor/openssl
 cd $1/vendor/openssl
 curl $OPENSSL_URL -s -o - | tar xzf -
+export LD_LIBRARY_PATH=$1/vendor/openssl/lib/
 echo "-----> Got OpenSSL binaries"
 
 echo "Build dir is $BUILD_DIR"
