@@ -24,10 +24,10 @@ shopt -s dotglob
 # install openssl1.0.1g
 echo "-----> Install from $OPENSSL_URL"
 echo "-----> Fetching OpenSSL binaries"
-mkdir -p $1/vendor/openssl
-cd $1/vendor/openssl
+mkdir -p $BUILD_DIR/local/
+cd $BUILD_DIR/local/
 curl $OPENSSL_URL -s -o - | tar xzf -
-ls -la $1/vender/openssl
+ls -la $BUILD_DIR/local
 echo "-----> Got OpenSSL binaries"
 
 echo "Build dir is $BUILD_DIR"
@@ -58,8 +58,8 @@ cd bin
 ln -s ../php/bin/php php
 cd ..
 
-export LD_LIBRARY_PATH=$BUILD_DIR/local/lib:$1/vendor/openssl/lib/
-export PATH=$PATH:$BUILD_DIR/bin
+export LD_LIBRARY_PATH=$BUILD_DIR/local/lib
+export PATH=$PATH:$BUILD_DIR/local/bin:$BUILD_DIR/bin
 
 # set a slug_id identifier
 slug_id=$(php/bin/php -r "echo md5(uniqid('', TRUE));")
