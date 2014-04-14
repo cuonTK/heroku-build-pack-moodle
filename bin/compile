@@ -24,12 +24,12 @@ shopt -s dotglob
 # install openssl1.0.1g
 echo "-----> Install from $OPENSSL_URL"
 echo "-----> Fetching OpenSSL binaries"
-mkdir /app/openssl
-cd /app/openssl
+mkdir /usr/local/ssl
+cd /usr/local/ssl
 curl $OPENSSL_URL -s -o - | tar xzf -
-/app/openssl/bin/openssl version
-mv /usr/bin/openssl /usr/bin/openssl.bak
-ln -s /app/openssl/bin/openssl /usr/bin/openssl
+/usr/local/ssl/bin/openssl version
+# mv /usr/bin/openssl /usr/bin/openssl.bak
+# ln -s /usr/local/ssl/bin/openssl /usr/bin/openssl
 echo "-----> Got OpenSSL binaries"
 
 echo "Build dir is $BUILD_DIR"
