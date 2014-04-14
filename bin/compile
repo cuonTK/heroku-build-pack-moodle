@@ -27,7 +27,7 @@ echo "-----> Fetching OpenSSL binaries"
 mkdir -p $1/vendor/openssl
 cd $1/vendor/openssl
 curl $OPENSSL_URL -s -o - | tar xzf -
-export LD_LIBRARY_PATH=$1/vendor/openssl/lib/
+ls -la $1/vender/openssl
 echo "-----> Got OpenSSL binaries"
 
 echo "Build dir is $BUILD_DIR"
@@ -58,7 +58,7 @@ cd bin
 ln -s ../php/bin/php php
 cd ..
 
-export LD_LIBRARY_PATH=$BUILD_DIR/local/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BUILD_DIR/local/lib:$1/vendor/openssl/lib/
 export PATH=$PATH:$BUILD_DIR/bin
 
 # set a slug_id identifier
