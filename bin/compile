@@ -144,7 +144,7 @@ chmod 0777 \$PHP_ERROR_LOG
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
 tail -F \$PHP_ERROR_LOG &
-export LD_LIBRARY_PATH=/app/local/lib
+export LD_LIBRARY_PATH=/app/local/lib:/app/openssl/lib:/app/apache/lib:/app/php/lib
 # export PHP_INI_SCAN_DIR=/app/php
 
 # let's check for hook scripts
@@ -199,5 +199,4 @@ echo "ls -la /"
 ls -la /
 echo "ls -la /app"
 ls -la /app
-$LD_LIBRARY_PATH=/app/openssl/lib:/app/apache/lib:/app/local/lib:/app/php/lib
 echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH"
