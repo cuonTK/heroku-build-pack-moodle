@@ -21,19 +21,6 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 # include .files when moving things around
 shopt -s dotglob
 
-# install openssl1.0.1g
-echo "-----> Install from $OPENSSL_URL"
-echo "-----> Fetching OpenSSL binaries"
-mkdir -p $BUILD_DIR/local/
-cd $BUILD_DIR/local/
-curl $OPENSSL_URL -s -o - | tar xzf -
-echo pwd
-echo "===="
-ls -la $BUILD_DIR/local
-echo "===="
-ls -la $BUILD_DIR/local/lib
-echo "-----> Got OpenSSL binaries"
-
 echo "Build dir is $BUILD_DIR"
 cd $BUILD_DIR
 
@@ -51,6 +38,20 @@ echo "-----> Extracting Apache $APACHE_VERSION PHP $PHP_VERSION build $BUILDPACK
 echo "-----> from $OPT_BUILDPACK_URL"
 curl --silent --max-time 60 --location "$OPT_BUILDPACK_URL" | tar xz
 
+# install openssl1.0.1g
+echo "-----> Install from $OPENSSL_URL"
+echo "-----> Fetching OpenSSL binaries"
+mkdir -p $BUILD_DIR/openssl/
+cd $BUILD_DIR/openssl/
+curl $OPENSSL_URL -s -o - | tar xzf -
+pwd
+echo "===="
+ls -la $BUILD_DIR/openssl
+echo "===="
+ls -la $BUILD_DIR/openssl/lib
+cd $BUILD_DIR
+echo "-----> Got OpenSSL binaries"
+
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
@@ -63,10 +64,21 @@ ln -s ../php/bin/php php
 cd ..
 
 echo "-----> after php linked"
+pwd
+echo "ls -la BUILD_DIR/openssl/lib"
+ls -la $BUILD_DIR/openssl/lib
+echo "ls -la BUILD_DIR/local/lib"
+ls -la $BUILD_DIR/local/lib
+echo "ls -la BUILD_DIR/local"
+ls -la $BUILD_DIR/local
+echo "ls -la BUILD_DIR"
+ls -la $BUILD_DIR
 
-export LD_LIBRARY_PATH=$BUILD_DIR/www/local/lib:$BUILD_DIR/apache/lib:$BUILD_DIR/php/lib:$BUILD_DIR/local/lib
-echo $LD_LIBRARY_PATH
+
+export LD_LIBRARY_PATH=$BUILD_DIR/openssl/lib:$BUILD_DIR/apache/lib:$BUILD_DIR/php/lib:$BUILD_DIR/local/lib
+echo "echo LD_LIBRARY_PATH is $LD_LIBRARY_PATH"
 export PATH=$PATH:$BUILD_DIR/local/bin:$BUILD_DIR/bin
+echo "echo PATH is $PATH"
 
 echo "-----> after export path"
 
@@ -161,3 +173,24 @@ if [ -d $BUILD_DIR/www/.heroku -a -f $BUILD_DIR/www/.heroku/compile.sh ]; then
     /usr/bin/env bash $BUILD_DIR/www/.heroku/compile.sh
     rm $BUILD_DIR/www/.heroku/compile.sh
 fi
+
+
+
+echo "-----> debug"
+
+echo "echo LD_LIBRARY_PATH is $LD_LIBRARY_PATH"
+echo "echo PATH is $PATH"
+
+echo "-----"
+
+pwd
+echo "ls -la BUILD_DIR/openssl/lib"
+ls -la $BUILD_DIR/openssl/lib
+echo "ls -la BUILD_DIR/local/lib"
+ls -la $BUILD_DIR/local/lib
+echo "ls -la BUILD_DIR/local"
+ls -la $BUILD_DIR/local
+echo "ls -la BUILD_DIR"
+ls -la $BUILD_DIR
+
+echo "======"
