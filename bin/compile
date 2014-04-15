@@ -193,7 +193,11 @@ ls -la $BUILD_DIR/local
 echo "ls -la BUILD_DIR"
 ls -la $BUILD_DIR
 
-echo "======"
+echo "------> debug end"
 
+echo "ls -la /"
+ls -la /
+echo "ls -la /app"
+ls -la /app
 $LD_LIBRARY_PATH=/app/openssl/lib:/app/apache/lib:/app/local/lib:/app/php/lib
 echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH"
