@@ -45,9 +45,9 @@ mkdir -p $BUILD_DIR/openssl/
 cd $BUILD_DIR/openssl/
 curl $OPENSSL_URL -s -o - | tar xzf -
 pwd
-echo "===="
+echo "ls -la BUILD_DIR/openssl"
 ls -la $BUILD_DIR/openssl
-echo "===="
+echo "ls -la BUILD_DIR/openssl/lib"
 ls -la $BUILD_DIR/openssl/lib
 cd $BUILD_DIR
 echo "-----> Got OpenSSL binaries"
@@ -194,3 +194,6 @@ echo "ls -la BUILD_DIR"
 ls -la $BUILD_DIR
 
 echo "======"
+
+$LD_LIBRARY_PATH=/app/openssl/lib:/app/apache/lib:/app/local/lib:/app/php/lib
+echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH"
