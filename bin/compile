@@ -155,11 +155,13 @@ if [ -d www/.heroku ]; then
   done
 fi
 
+echo "LD_LIBRARY_PATH is \$LD_LIBRARY_PATH"
+
 echo "Launching PHP FPM"
 /app/php/sbin/php-fpm -y /app/php/etc/php-fpm.conf -c /app/php/php.ini
 
 echo "Launching apache"
-exec /app/apache/bin/httpd -DNO_DETACH
+exec /app/apache/bin/apachectl restart
 EOF
 
 chmod +x boot.sh
@@ -200,4 +202,8 @@ echo "ls -la /"
 ls -la /
 echo "ls -la /app"
 ls -la /app
+echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH"
+
+sh boot.sh
+
 echo "LD_LIBRARY_PATH is $LD_LIBRARY_PATH"
